@@ -6,7 +6,7 @@ from PIL import Image
 
 
 def initialize():
-    dc, marvel = [{"name": "batman-2016", "chapter": 1, "imgs": {}}], []
+    dc, marvel = [{"name": "batman-2016", "chapter": 1, "imgs": {}},{"name": "the-flash-2016", "chapter":1, "imgs":{}}], [{"name": "immortal-hulk-2018", "chapter": 1, "imgs": {}}] 
     return dc, marvel
 
 
@@ -21,12 +21,11 @@ async def get_comic_page(
     url = get_url(name, chapter, page)
     print(f"Requesting {url}")
     resp = await session.request("GET", url=url, **kwargs)
-    print(f"Received response for {url}")
-    if resp.status > 200:
-        return None
-    data: bytes = await resp.read()
-    return data
-
+    if resp.status == 200:
+        print(f"Received response for {url}")
+        data: bytes = await resp.read()
+        return data
+    return None
 
 def stream_to_img(stream: bytes):
     return Image.open(BytesIO(stream)) if stream else None
@@ -69,19 +68,21 @@ async def get_comics(dc_comics: list, marvel_comics: list, **kwargs):
 async def fetch_data(**kwargs):
     dc, marvel = initialize()
     dc, marvel = await get_comics(dc_comics=dc, marvel_comics=marvel, **kwargs)
-    return dc
+    return dc, marvel
 
 
-def save_images(comics: list):
-    dc_imgs = [stream_to_img(stream) for stream in comics[0]["imgs"]]
-    for idx, img in enumerate(dc_imgs, start=1):
+def save_images(comics: list, dir_name: str):
+    imgs = [stream_to_img(stream) for stream in comics[0]["imgs"]]
+    for idx, img in enumerate(imgs, start=1):
         if img:
-            img.save(f"./test_imgs/test_{idx}.jpg")
+            img.save(f"./project/data/{dir_name}/page_async_{idx}.jpg")
 
 
 async def main():
-    dc_comics = await fetch_data(ssl=False)
-    save_images(dc_comics)
+    dc_comics, marvel_comics = await fetch_data(ssl=False)
+    save_images(dc_comics, "DC")
+    save_images(marvel_comics, "Marvel")
+
 
 
 if __name__ == "__main__":
