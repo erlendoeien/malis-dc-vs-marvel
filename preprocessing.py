@@ -7,48 +7,82 @@ Created on Wed Dec  1 16:06:54 2021
 import numpy as np
 import random
 import cv2
-import matplotlib.pyplot as plt
 import os
+from pathlib import Path
+
 
 def load_images_from_folder(folder):
     images = []
     for filename in os.listdir(folder):
-        img = cv2.imread(os.path.join(folder,filename))
+        print(folder, filename)
+        img = cv2.imread(os.path.join(folder, filename))
         if img is not None:
             images.append(img)
     return images
 
+
+def load_all_images(img_category_folder):
+    imgs_flattened = []
+    for comic_folder_path, subdirs, pages in os.walk(img_category_folder):
+        print(comic_folder_path)
+        imgs_flattened.extend(
+            [
+                cv2.imread(os.path.join(comic_folder_path, page))
+                for page in pages
+                if page.endswith(".jpg")
+            ]
+        )
+    return imgs_flattened
+
+
 def reshape_to_uniform_dim(images):
     for i in range(len(images)):
-        images[i] = np.reshape(images[i], (images[0].shape[0],images[0].shape[1],3))  
+        images[i] = np.reshape(images[i], (images[0].shape[0], images[0].shape[1], 3))
     return images
+
 
 # image : image we want to crop
 # tlc : top left corner, coordinates of the top left corner of the crop
 # d : dimension of the square crop
 # i : the index allowing us to differentiate all samples that we save
-# in imwrite we can specify the folder were we want to save all the data 
-def crop_from_tlc(image,tlc,d,i):
-    im = image[tlc[0]:tlc[0]+d-1,tlc[1]:tlc[1]+d-1]
-    im = np.uint8(im)
-    cv2.imwrite('DC_proc/sample_%i.png'%(i), im)
+# in imwrite we can specify the folder were we want to save all the data
+def crop_from_tlc(image, tlc, d, i, output_dir):
+    im = image[tlc[0] : tlc[0] + d - 1, tlc[1] : tlc[1] + d - 1]
+    if im.size != 0:
+        im = np.uint8(im)
+        cv2.imwrite(os.path.join(output_dir, f"sample_{str(i)}.png"), im)
+
 
 # images : the list of all images we want to crop into samples
 # n : the number of crops we do for a given image
 # x : the dimansion of the square crop
-def crop_images_to_sample_size(images,d,n):
+def crop_images_to_sample_size(images, d, n, output_dir):
     l = 0
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
     for i in range(len(images)):
         shape = images[i].shape
-        tlc = [0,0]
-        for k in range(0,n):
-            rand_x = np.uint16(random.uniform(0, shape[1] - d)) # I make sure here that the top left corner cannot be 
-            rand_y = np.uint16(random.uniform(0, shape[0] - d)) # initialized in the zone where the crop would step out 
-            tlc[0] = rand_y 
+        tlc = [0, 0]
+        for k in range(0, n):
+            rand_x = np.uint16(
+                random.uniform(0, shape[1] - d)
+            )  # I make sure here that the top left corner cannot be
+            rand_y = np.uint16(
+                random.uniform(0, shape[0] - d)
+            )  # initialized in the zone where the crop would step out
+            tlc[0] = rand_y
             tlc[1] = rand_x
-            crop_from_tlc(images[i],tlc,d,l)            
+            crop_from_tlc(images[i], tlc, d, l, output_dir)
             l += 1
 
-imgs = load_images_from_folder("Marvel/immortal-hulk-2018-1")
-#reshape to a uniforme size then cut every one in 6
-crop_images_to_sample_size(imgs[1:2], 1000, 10)
+
+if __name__ == "__main__":
+    data_path = os.path.realpath("data")
+    # Read all images and flatten them - Including advertisement/covers
+    marvel_imgs = load_all_images(os.path.join(data_path, "Marvel"))
+    dc_imgs = load_all_images(os.path.join(data_path, "DC"))
+
+    processed_path = os.path.join(data_path, "processed", "crop_6_1000x1000")
+    # Crop all images into 6 samples given the page resolution of 3056x1988, each of resolution 1000x1000 (-1 so in fact 999x999)
+    # To minimize overlap between samples
+    crop_images_to_sample_size(marvel_imgs, 1000, 6, os.path.join(processed_path, "marvel"))
+    crop_images_to_sample_size(dc_imgs, 1000, 6, os.path.join(processed_path, "dc"))

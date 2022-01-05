@@ -157,3 +157,4 @@ cython_debug/
 # Custom
 malis_project/
 data/
+.vscode

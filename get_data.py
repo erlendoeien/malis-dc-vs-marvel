@@ -5,14 +5,57 @@ import os
 from io import BytesIO
 from PIL import Image
 
+DC_COMICS_NAMES = [
+    # "nightwing-2016",
+    # "the-hellblazer-2016",
+    # "batgirl-2016",
+    # "superman-2016",
+    # "red-hood-and-the-outlaws-2016",
+    # "wonder-woman-2016",
+    # "aquaman-2016-rebirth",
+    # "supergirl-2016",
+    # "green-lanterns-2016",
+    # "blue-beetle-2016",
+    # "harley-quinn-2016",
+    # "green-arrow-2016",
+    # "teen-titans-2016",
+    # "cyborg-2016",
+    # "deathstroke-2016",
+    # "heman-thundercats-2016",
+    # "suicide-squad-2016",
+    # "justice-league-2016",
+]
+MARVEL_COMICS_NAMES = [
+    # "the-thing-and-the-human-torch-by-dan-slott-2018",
+    # "absolute-carnage-2019/",
+    # "allnew-wolverine-2015",
+    # "amazing-spiderman-2018",
+    # "black-widow-widows-sting-2020",
+    # "hawkeye-kate-bishop-2021",
+    # "death-of-doctor-strange-avengers-2021",
+    # "ms-marvel-infinity-comic-primer-2021",
+    # "captain-america-heroes-return-the-complete-collection-2021",
+    # "hulk-2021",
+    # "thanos-2016",
+    # "new-mutants-2019",
+    # "the-mighty-thor-2015",
+    # "deadpool-2015",
+    # "daredevil-2019",
+    # "spidergwen-vol-2-2015",
+    # "xforce-2019",
+    # "the-darkhold-black-bolt-2021",
+    # "shangchi-brothers-sisters-infinity-comic-2021",
+]
+
 
 def initialize():
     """Hardcoded initialize function where one can supply
     the wanted comic books by name and their 'chapter' (edition)"""
-    dc, marvel = [
-        {"name": "batman-2016", "chapter": 1, "imgs": []},
-        {"name": "the-flash-2016", "chapter": 1, "imgs": []},
-    ], [{"name": "immortal-hulk-2018", "chapter": 1, "imgs": []}]
+    dc = [{"name": name, "chapter": 1, "imgs": []} for name in DC_COMICS_NAMES]
+    marvel = [
+        {"name": name, "chapter": 1 if "TBP" not in name else "TBP", "imgs": []}
+        for name in MARVEL_COMICS_NAMES
+    ]
     return dc, marvel
 
 
