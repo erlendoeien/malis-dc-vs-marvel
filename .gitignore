@@ -158,3 +158,5 @@ cython_debug/
 malis_project/
 data/
 .vscode
+*.h5
+*.joblib
